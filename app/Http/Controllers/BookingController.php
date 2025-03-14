@@ -81,7 +81,6 @@ class BookingController extends Controller
 
         // Continue with booking creation if no existing booking found
         $service = Service::findOrFail($request->service_id);
-        $bookingDate = Carbon::parse($request->booking_date);
         $basePrice = $service->price;
         
         $booking = new Booking($request->all());

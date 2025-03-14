@@ -47,11 +47,12 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="start_time" class="form-label">Start Time</label>
-                                    <input type="text" name="start_time" id="start_time" class="form-control" required>
+                                    <input type="time" name="start_time" id="start_time" class="form-control" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="end_time" class="form-label">End Time</label>
-                                    <input type="text" name="end_time" id="end_time" class="form-control" required>
+                                    <input type="time" name="end_time" id="end_time" class="form-control" required>
+                                    <div class="invalid-feedback">End time harus setelah start time.</div>
                                 </div>
                             </div>
 
@@ -175,6 +176,50 @@
                     console.error('Error calculating price:', error);
                 });
         }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startTimeInput = document.getElementById('start_time');
+            const endTimeInput = document.getElementById('end_time');
+
+            // Inisialisasi Flatpickr
+            const startPicker = flatpickr(startTimeInput, {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                minuteIncrement: 30,
+                onChange: function (selectedDates, dateStr) {
+                    validateTime();
+                }
+            });
+
+            const endPicker = flatpickr(endTimeInput, {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                minuteIncrement: 30,
+                onChange: function (selectedDates, dateStr) {
+                    validateTime();
+                }
+            });
+
+            function validateTime() {
+                let startTime = startTimeInput.value;
+                let endTime = endTimeInput.value;
+
+                if (startTime && endTime) {
+                    if (endTime <= startTime) {
+                        endTimeInput.setCustomValidity("End time harus lebih dari start time.");
+                        endTimeInput.classList.add("is-invalid");
+                    } else {
+                        endTimeInput.setCustomValidity("");
+                        endTimeInput.classList.remove("is-invalid");
+                    }
+                }
+            }
+        });
     </script>
 </body>
 
