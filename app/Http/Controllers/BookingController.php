@@ -60,7 +60,26 @@ class BookingController extends Controller
             'start_time' => 'required',
             'end_time' => 'required|after:start_time',
         ]);
+        
+        // Check for existing booking with the same details
+        $existingBooking = Booking::where('customer_email', $request->customer_email)
+            ->where('booking_date', $request->booking_date)
+            ->where('start_time', $request->start_time)
+            ->where('service_id', $request->service_id)
+            ->first();
+        
+        if ($existingBooking) {
+            // If there's already a booking, redirect to its payment or confirmation page
+            if ($existingBooking->status === 'paid') {
+                return redirect()->route('bookings.confirmation', $existingBooking->id)
+                    ->with('info', 'You already have a confirmed booking for this time.');
+            } else {
+                return redirect()->route('bookings.confirmation', $existingBooking->id)
+                    ->with('info', 'You already have a pending booking for this time.');
+            }
+        }
 
+        // Continue with booking creation if no existing booking found
         $service = Service::findOrFail($request->service_id);
         $bookingDate = Carbon::parse($request->booking_date);
         $basePrice = $service->price;
@@ -125,16 +144,16 @@ class BookingController extends Controller
                 return response()->json(['success' => false, 'message' => 'Booking not found'], 404);
             }
 
-            // Update status pembayaran - LOG LEBIH DETAIL
-            Log::info('Updating booking status', [
-                'booking_id' => $booking->id,
-                'old_status' => $booking->status,
-                'new_status' => $request->transaction_status,
-                'payment_id' => $request->order_id
-            ]);
+            // Simpan semua data dari Midtrans sebagai JSON
+            $paymentData = $request->all();
+            if (!empty($paymentData)) {
+                $booking->payment_data = json_encode($paymentData);
+            } else {
+                Log::warning('Empty payment data received');
+            }
 
+            // Update status pembayaran
             $booking->payment_status = $request->transaction_status;
-            $booking->payment_data = json_encode($request->all());
 
             // Pemrosesan status lebih detail
             if (in_array($request->transaction_status, ['capture', 'settlement'])) {
@@ -152,7 +171,8 @@ class BookingController extends Controller
 
             Log::info('Booking updated successfully', [
                 'order_id' => $request->order_id,
-                'status' => $booking->status
+                'status' => $booking->status,
+                'payment_data_saved' => !empty($booking->payment_data)
             ]);
 
             return response()->json(['success' => true]);

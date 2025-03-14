@@ -24,11 +24,10 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2);
             $table->decimal('weekend_surcharge', 10, 2)->default(0);
             $table->decimal('total_price', 10, 2);
-            $table->string('status')->default('pending'); // pending, paid, cancelled
-            $table->string('payment_id')->nullable(); // midtrans order id
+            $table->string('status')->default('pending');
+            $table->string('payment_id')->nullable();
             $table->string('payment_status')->nullable();
-            $table->text('payment_data')->nullable(); // json data from midtrans
-            $table->string('snap_token')->nullable(); // Jangan hapus ini!
+            $table->string('snap_token')->nullable();
             $table->timestamps();
         });        
     }

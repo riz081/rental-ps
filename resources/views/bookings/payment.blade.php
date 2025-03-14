@@ -33,7 +33,8 @@
                                 <tr>
                                     <th>Time:</th>
                                     <td>{{ date('H:i', strtotime($booking->start_time)) }} -
-                                        {{ date('H:i', strtotime($booking->end_time)) }}</td>
+                                        {{ date('H:i', strtotime($booking->end_time)) }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>Customer:</th>
@@ -68,7 +69,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('pay-button').onclick = function () {
+            const payButton = document.getElementById('pay-button');
+
+            payButton.onclick = function () {
+                // Disable the button to prevent multiple clicks
+                payButton.disabled = true;
+                payButton.textContent = 'Processing...';
+
                 // Trigger snap popup
                 window.snap.pay('{{ $snap_token }}', {
                     onSuccess: function (result) {
@@ -79,10 +86,15 @@
                     },
                     onError: function (result) {
                         alert('Payment failed: ' + result.status_message);
-                        window.location.href = '{{ route('bookings.index') }}';
+                        // Re-enable the button if there's an error
+                        payButton.disabled = false;
+                        payButton.textContent = 'Try Again';
                     },
                     onClose: function () {
                         alert('You closed the payment popup without completing the payment');
+                        // Re-enable the button if the user closes the popup
+                        payButton.disabled = false;
+                        payButton.textContent = 'Pay Now';
                     }
                 });
             };
